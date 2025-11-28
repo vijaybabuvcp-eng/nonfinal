@@ -47,7 +47,7 @@ void AHeroCommanderCharacter::TrySpawnBodyguardBattalion()
     }
 
     // Need a valid profile and a configured bodyguard unit.
-    if (!HeroProfile || !HeroProfile->HasPersonalBodyguard || !HeroProfile->BodyguardUnitType)
+    if (!HeroProfile || !HeroProfile->bHasPersonalBodyguard || !HeroProfile->BodyguardUnitType)
     {
         return;
     }
