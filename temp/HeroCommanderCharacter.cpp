@@ -1,7 +1,6 @@
 // HeroCommanderCharacter.cpp
 
 #include "HeroCommanderCharacter.h"
-
 #include "StaminaComponent.h"
 #include "CombatComponent.h"
 #include "HeroProfileData.h"
@@ -21,12 +20,13 @@ AHeroCommanderCharacter::AHeroCommanderCharacter()
 
 	// Components
 	StaminaComp = CreateDefaultSubobject<UStaminaComponent>(TEXT("StaminaComp"));
-	CombatComp = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComp"));
+	CombatComp  = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComp"));
 
 	// Bodyguard defaults
 	bAutoSpawnBodyguardFromProfile = true;
-	BodyguardSpawnOffset = FVector(800.f, 0.f, 0.f); // ~8m in front by default
-	DesiredBodyguardFollowDistance = 900.f;                    // keep fairly close
+	BodyguardSpawnOffset            = FVector(800.f, 0.f, 0.f);   // ~8m in front by default
+	DesiredBodyguardFollowDistance  = 900.f;                      // keep fairly close
+
 	BodyguardBattalion = nullptr;
 }
 
@@ -66,7 +66,7 @@ void AHeroCommanderCharacter::ApplyHeroProfileToMovement()
 
 	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
 	{
-		// HeroProfile should expose a MoveSpeedMultiplier field (1.0 = default).
+		// HeroProfile exposes a MoveSpeedMultiplier field (1.0 = default).
 		const float MoveScale = FMath::Max(0.1f, HeroProfile->MoveSpeedMultiplier);
 		MoveComp->MaxWalkSpeed *= MoveScale;
 	}
@@ -86,12 +86,14 @@ void AHeroCommanderCharacter::TrySpawnBodyguardBattalion()
 
 	if (BodyguardBattalion != nullptr)
 	{
-		return; // already spawned
+		// Already spawned.
+		return;
 	}
 
 	if (!HeroProfile || !HeroProfile->bHasPersonalBodyguard || !HeroProfile->BodyguardUnitType)
 	{
-		return; // this hero doesn't use a personal bodyguard
+		// This hero doesn't use a personal bodyguard.
+		return;
 	}
 
 	if (!BodyguardBattalionClass)
@@ -112,8 +114,8 @@ void AHeroCommanderCharacter::TrySpawnBodyguardBattalion()
 	const FVector SpawnLocation =
 		GetActorLocation()
 		+ GetActorForwardVector() * BodyguardSpawnOffset.X
-		+ GetActorRightVector() * BodyguardSpawnOffset.Y
-		+ GetActorUpVector() * BodyguardSpawnOffset.Z;
+		+ GetActorRightVector()   * BodyguardSpawnOffset.Y
+		+ GetActorUpVector()      * BodyguardSpawnOffset.Z;
 
 	const FRotator SpawnRotation = GetActorRotation();
 
@@ -136,10 +138,8 @@ void AHeroCommanderCharacter::TrySpawnBodyguardBattalion()
 		return;
 	}
 
-	// Initialise from the unit template.  ABattalionActor should already know how
-	// to read things like IsGeneralBodyguardTemplate / MoraleUnbreakable from
-	// the UUnitTypeData asset.
-	BodyguardBattalion->InitializeFromUnitType(HeroProfile->BodyguardUnitType);
+	// Initialise from the unit template and mark as this hero's personal bodyguard.
+	BodyguardBattalion->InitializeAsGeneralBodyguard(this, HeroProfile->BodyguardUnitType);
 
 	UE_LOG(LogTemp, Log,
 		TEXT("HeroCommanderCharacter %s spawned bodyguard battalion %s using unit type %s."),
@@ -160,10 +160,10 @@ void AHeroCommanderCharacter::UpdateBodyguardFollow(float /*DeltaSeconds*/)
 	}
 
 	// Keep the bodyguard fairly close and slightly behind the hero.
-	const FVector HeroLocation = GetActorLocation();
+	const FVector HeroLocation      = GetActorLocation();
 	const FVector BattalionLocation = BodyguardBattalion->GetActorLocation();
 
-	const float DistSq = FVector::DistSquared2D(HeroLocation, BattalionLocation);
+	const float DistSq        = FVector::DistSquared2D(HeroLocation, BattalionLocation);
 	const float DesiredDistSq = DesiredBodyguardFollowDistance * DesiredBodyguardFollowDistance;
 
 	if (DistSq > DesiredDistSq)
@@ -172,7 +172,7 @@ void AHeroCommanderCharacter::UpdateBodyguardFollow(float /*DeltaSeconds*/)
 		const FVector TargetLocation =
 			HeroLocation - GetActorForwardVector() * DesiredBodyguardFollowDistance;
 
-		// ABattalionActor is expected to expose this order method.
+		// ABattalionActor exposes this order method.
 		BodyguardBattalion->Command_MoveTo(TargetLocation);
 	}
 }
